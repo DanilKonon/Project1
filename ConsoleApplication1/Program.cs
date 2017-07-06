@@ -17,7 +17,7 @@ public struct Token
     }
 };
 
-public enum AstNodeType { OpPlus, OpMinus, OpMul, UnMinus, OpDiv, Number, Undefined, OpExp, OpTerm } //experiment with opexp
+public enum AstNodeType { OpPlus, OpMinus, OpMul, UnMinus, OpDiv, Number, Undefined} //experiment with opexp
 
 public class AstNode
 {
@@ -106,7 +106,7 @@ class Parser
                 return node; //why????
             case TypeofToken.Minus:
                 GetNextToken();
-                node = Expression();
+                node = Expression(); //Factor or Expression
                 return CreateUnaryMinus(node);
             case TypeofToken.Number:
                 double val = currToken.val;
@@ -225,9 +225,10 @@ class Parser
         return node;
     }
 
-    AstNode CreateUnaryMinus(AstNode lnode)
+    AstNode CreateUnaryMinus(AstNode rnode)
     {
-        AstNode node = new AstNode(AstNodeType.UnMinus, 0, lnode, null); //to check
+        AstNode lnode = new AstNode(AstNodeType.Number, 0, null, null);
+        AstNode node = new AstNode(AstNodeType.OpMinus, 0, lnode, rnode); //to check
         return node;
     }
 
@@ -279,10 +280,6 @@ class Evaluator
         {
             return head.Value;
         }
-        if (head.Type == AstNodeType.UnMinus)
-        {
-            return -EvalSubTree(head.Left);
-        }
         double v1 = EvalSubTree(head.Left);
         double v2 = EvalSubTree(head.Right);
         switch (head.Type)
@@ -315,7 +312,8 @@ class PrintTheTree
     public
     int PrintTree(AstNode node, int index)
     {
-        string path = @"C:\Users\Danil\Documents\Visual Studio 2015\Projects\ConsoleApplication1\Graph.txt";
+        //string path = @"C:\Users\Danil\Documents\Visual Studio 2015\Projects\ConsoleApplication1\Graph.txt";
+        string path = @"/Users/kononykhindanil/Documents/Project1/Graph.txt";
         if (index == 0)
         {
             using (FileStream fs = File.Create(path))
@@ -326,16 +324,14 @@ class PrintTheTree
         }
         int i = index; //error possible?
         string res = string.Empty;
-        if (node.Type == AstNodeType.Number)
-        {
-            res = node.Value.ToString();
-        }
+
         switch (node.Type)
         {
             case AstNodeType.OpPlus: res = "+"; break;
             case AstNodeType.OpMinus: res = "-"; break;
             case AstNodeType.OpMul: res = "*"; break;
             case AstNodeType.OpDiv: res = "/"; break; //unary minus
+            case AstNodeType.Number: res = node.Value.ToString(); break;
         }
         using (StreamWriter fs = File.AppendText(path))
         {
@@ -374,6 +370,7 @@ class HeyYou
         tester.Test("125");
         tester.Test("-1");
         tester.Test("-1+(-2)");
+        Console.ReadKey();
         tester.Test("-1+(-2.0)");
         tester.Test("   1*2,5");
         tester.Test("   1*2.5e2");
